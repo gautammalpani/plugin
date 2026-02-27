@@ -1,0 +1,10 @@
+{
+  "name": "filterBar",
+  "source": [
+    "main.6.js"
+  ],
+  "style": [
+    "filterbar.css"
+  ],
+  "pluginInfraVersion": 2
+}
