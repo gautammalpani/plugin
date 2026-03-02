@@ -1,5 +1,4 @@
 <div data-ng-controller="plugin-filterBar.controllers.stylerController">
-
   <div class="style-control">
     <label>Widget Mode</label>
     <select data-ng-model="widget.style.widgetMode">
@@ -77,6 +76,8 @@
       <option value="auto">Auto-apply</option>
       <option value="button">Apply button</option>
     </select>
+    <div style="opacity:0.75; font-size: 12px; margin-top: 6px;">
+      When set to <b>Apply button</b>, selections won’t update dashboard filters until you click Apply.
+    </div>
   </div>
-
 </div>

@@ -1,6 +1,7 @@
 {
   "name": "filterBar",
   "source": [
+    "style-panel-controller.6.js",
     "main.6.js"
   ],
   "style": [

@@ -7,38 +7,32 @@
   height:100%;
   box-sizing:border-box;
 }
-
 .fb-row{
   display:flex;
   align-items:center;
   gap:10px;
 }
-
 .fb-label{
   min-width: 140px;
   font-weight: 600;
   opacity: 0.85;
   white-space: nowrap;
 }
-
 .fb-input, .fb-select{
   flex: 1 1 auto;
   min-width: 220px;
   padding: 6px 10px;
   border-radius: 6px;
 }
-
 .fb-select[multiple]{
   height: 110px;
 }
-
 .fb-actions{
   display:flex;
   gap:8px;
   justify-content:flex-end;
   margin-top: 4px;
 }
-
 .fb-btn{
   padding: 6px 10px;
   border-radius: 6px;
@@ -46,13 +40,11 @@
   background: #fff;
   cursor:pointer;
 }
-
 .fb-btn.primary{
   background: #2b78d4;
   color: #fff;
   border-color: #2b78d4;
 }
-
 .fb-empty{
   padding: 10px 12px;
   opacity: 0.7;
