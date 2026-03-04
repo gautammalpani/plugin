@@ -1,18 +1,25 @@
-# Sisense Filter Bar — v1.0.3-hotfix3
+# Sisense Filter Bar — Full Guarded Version (v1.0.3-full)
 
-## What this fixes
-If you see errors when switching an existing widget to **Filter Bar** type, such as:
-- `TypeError: Cannot read properties of undefined (reading 'length')` in `buildQuery`
-- `TypeError: Cannot set properties of undefined (setting 'innerHTML')` in `render`
+This package is the **full Filter Bar widget** (UI + server typeahead + numeric/date range) with the **editor-safe guards** that prevent errors when switching an existing widget to the Filter Bar type.
 
-…it is because Sisense can call `buildQuery` / `render` while the widget is mid-transition and the panel metadata or DOM element is not ready.
+## Install (Sisense Linux)
+1. Unzip.
+2. Copy the entire `filterBar/` folder into:
 
-This hotfix adds hard guards so `buildQuery` and `render` **never throw** when `widget`, `query`, `args`, or `args.element` are missing.
+   `/opt/sisense/storage/plugins/filterBar/`
 
-## Install
-Copy `filterBar/` to:
-`/opt/sisense/storage/plugins/filterBar/`
-Then restart Sisense and hard refresh.
+3. Restart the Sisense web application, then hard refresh browser cache.
 
-## Note
-This build focuses on stability during type switching in the editor. If you need the full control rendering restored, reply and I will generate a follow-up package that merges these guards into the full UI implementation.
+## Verify
+- In the widget type picker, **Filter Bar** appears.
+- Switching a widget's type to **Filter Bar** does not produce console errors.
+
+## Large domains
+- For large text domains, server-side typeahead uses **startsWith** by default (Auto mode).
+- Users must type at least `minChars` characters.
+
+## Notes
+- The plugin is enabled via `isEnabled: true` in plugin.json.
+- Registration waits until `window.prism.registerWidget` is available.
+
+If server-side typeahead returns no results, you may need to adjust the datasource identifier in `main.6.js` (`datasourceTitle`).
