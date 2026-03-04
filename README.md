@@ -1,19 +1,18 @@
-# Sisense Filter Bar — v1.0.3-hotfix2 (Linux L2025.4)
+# Sisense Filter Bar — v1.0.3-hotfix3
 
-This build is intended for cases where the Filter Bar widget does not appear even though other custom widgets load.
+## What this fixes
+If you see errors when switching an existing widget to **Filter Bar** type, such as:
+- `TypeError: Cannot read properties of undefined (reading 'length')` in `buildQuery`
+- `TypeError: Cannot set properties of undefined (setting 'innerHTML')` in `render`
 
-## Fixes included
-- Adds `isEnabled: true` in plugin.json (recommended in Sisense plugin manifest examples). citeturn15search2turn15search3
-- Defers `prism.registerWidget(...)` until `window.prism` is available (avoids timing issues). citeturn15search8turn15search9
+…it is because Sisense can call `buildQuery` / `render` while the widget is mid-transition and the panel metadata or DOM element is not ready.
+
+This hotfix adds hard guards so `buildQuery` and `render` **never throw** when `widget`, `query`, `args`, or `args.element` are missing.
 
 ## Install
-1. Unzip.
-2. Copy folder to: `/opt/sisense/storage/plugins/filterBar/` (Linux plugins directory). citeturn15search3turn15search4
-3. Restart Sisense web app and hard refresh.
+Copy `filterBar/` to:
+`/opt/sisense/storage/plugins/filterBar/`
+Then restart Sisense and hard refresh.
 
-## Verify
-- Open DevTools → Network and ensure `/plugins/filterBar/main.6.js` returns 200.
-- Open DevTools → Console and confirm `[filterBar] failed to register` does NOT appear.
-
-## Notes
-Server typeahead uses `POST /api/datasources/{datasource}/jaql`. Adjust datasource identifier in main.6.js if needed.
+## Note
+This build focuses on stability during type switching in the editor. If you need the full control rendering restored, reply and I will generate a follow-up package that merges these guards into the full UI implementation.
