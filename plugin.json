@@ -1,10 +1,11 @@
 {
   "name": "filterBar",
+  "pluginInfraVersion": 2,
+  "isEnabled": true,
   "source": [
     "main.6.js"
   ],
   "style": [
     "filterbar.css"
-  ],
-  "pluginInfraVersion": 2
+  ]
 }

@@ -1,49 +1,19 @@
-# Sisense Filter Bar — v1.0.3-hotfix (Linux L2025.4)
+# Sisense Filter Bar — v1.0.3-hotfix2 (Linux L2025.4)
 
-This hotfix restores plugin-loader compatibility while keeping the **v1.0.3 behavior**:
+This build is intended for cases where the Filter Bar widget does not appear even though other custom widgets load.
 
-- **Large text domains** (e.g., 100k+ values) use **server-side typeahead** in Auto mode
-- For large domains, the server-side query uses **startsWith** by default (configurable)
-
-## What was fixed
-The original v1.0.3 used **computed object property** syntax for the JAQL filter:
-
-```js
-filter = { [op]: term };
-```
-
-In some Sisense environments, the plugin loader/transpiler can fail to parse/evaluate this syntax, which can prevent **all custom widgets** from registering.
-
-This hotfix replaces it with explicit filter objects:
-
-```js
-if (op === 'startsWith') filter = { startsWith: term };
-else filter = { contains: term };
-```
+## Fixes included
+- Adds `isEnabled: true` in plugin.json (recommended in Sisense plugin manifest examples). citeturn15search2turn15search3
+- Defers `prism.registerWidget(...)` until `window.prism` is available (avoids timing issues). citeturn15search8turn15search9
 
 ## Install
-1. Unzip this package.
-2. Copy the entire `filterBar/` folder to:
+1. Unzip.
+2. Copy folder to: `/opt/sisense/storage/plugins/filterBar/` (Linux plugins directory). citeturn15search3turn15search4
+3. Restart Sisense web app and hard refresh.
 
-`/opt/sisense/storage/plugins/filterBar/`
+## Verify
+- Open DevTools → Network and ensure `/plugins/filterBar/main.6.js` returns 200.
+- Open DevTools → Console and confirm `[filterBar] failed to register` does NOT appear.
 
-3. Restart the Sisense web app (recommended) and hard refresh browser cache.
-
-## Configuration
-In the widget Style panel:
-- **Server-side Typeahead**: Auto / On / Off
-- **Text match mode**: Auto (startsWith for large) / Starts With / Contains
-- **Min chars** and **Max results**
-
-## Note about datasource identifier
-Server typeahead uses:
-
-`POST /api/datasources/{datasource}/jaql`
-
-The plugin uses the dashboard datasource title by default:
-
-```js
-const datasourceTitle = widget.dashboard?.datasource?.title || widget.dashboard?.datasource || null;
-```
-
-If your environment needs a different datasource identifier (e.g., fullname), update that line in `main.6.js`.
+## Notes
+Server typeahead uses `POST /api/datasources/{datasource}/jaql`. Adjust datasource identifier in main.6.js if needed.

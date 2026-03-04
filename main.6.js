@@ -1,531 +1,536 @@
 // Filter Bar custom widget for Sisense Fusion (Linux) - L2025.4+
-// Top-of-dashboard filter controls as a reusable widget.
-// v1.0.3-hotfix: avoids computed object properties to prevent plugin-loader parse failures.
-// Behavior: for large text domains, server typeahead uses startsWith by default (configurable).
+// v1.0.3-hotfix2: Adds isEnabled:true and defers prism.registerWidget until prism is available.
 
 import controllerDefinition from './style-panel-controller.6';
 
-let mod;
-try { mod = angular.module('plugin-filterBar'); }
-catch (e) { mod = angular.module('plugin-filterBar', []); }
-mod.controller('plugin-filterBar.controllers.stylerController', controllerDefinition);
+function registerFilterBar(){
+  // Register Angular controller used by style panel template.
+  let mod;
+  try { mod = angular.module('plugin-filterBar'); }
+  catch (e) { mod = angular.module('plugin-filterBar', []); }
+  mod.controller('plugin-filterBar.controllers.stylerController', controllerDefinition);
 
-// ---------- Helpers ----------
-const safeArray = (v) => Array.isArray(v) ? v : [];
+  // ---------- Helpers ----------
+  const safeArray = (v) => Array.isArray(v) ? v : [];
 
-const getPanel = (widget, panelName) => {
-  const md = widget && widget.metadata;
-  if (!md) return null;
+  const getPanel = (widget, panelName) => {
+    const md = widget && widget.metadata;
+    if (!md) return null;
 
-  const tryNames = [
-    panelName,
-    String(panelName || '').toLowerCase(),
-    String(panelName || '').replace(/\s+/g, ''),
-    String(panelName || '').replace(/\s+/g, '').toLowerCase()
-  ];
+    const tryNames = [
+      panelName,
+      String(panelName || '').toLowerCase(),
+      String(panelName || '').replace(/\s+/g, ''),
+      String(panelName || '').replace(/\s+/g, '').toLowerCase()
+    ];
 
-  if (typeof md.panel === 'function') {
-    for (const n of tryNames) {
-      try {
-        const p = md.panel(n);
-        if (p) return p;
-      } catch (e) {}
+    if (typeof md.panel === 'function') {
+      for (let i=0;i<tryNames.length;i++) {
+        const n = tryNames[i];
+        try { const p = md.panel(n); if (p) return p; } catch (e) {}
+      }
     }
-  }
 
-  const panels = safeArray(md.panels);
-  for (const n of tryNames) {
-    const found = panels.find(p => p && (p.name === n || String(p.name).toLowerCase() === n));
-    if (found) return found;
-  }
+    const panels = safeArray(md.panels);
+    for (let i=0;i<tryNames.length;i++) {
+      const n = tryNames[i];
+      const found = panels.find(p => p && (p.name === n || String(p.name).toLowerCase() === n));
+      if (found) return found;
+    }
 
-  return null;
-};
+    return null;
+  };
 
-const getPanelItems = (widget, panelName) => {
-  const p = getPanel(widget, panelName);
-  if (!p) return [];
-  if (Array.isArray(p.items)) return p.items;
-  if (typeof p.items === 'function') {
-    try { return safeArray(p.items()); } catch (e) { return []; }
-  }
-  return [];
-};
+  const getPanelItems = (widget, panelName) => {
+    const p = getPanel(widget, panelName);
+    if (!p) return [];
+    if (Array.isArray(p.items)) return p.items;
+    if (typeof p.items === 'function') {
+      try { return safeArray(p.items()); } catch (e) { return []; }
+    }
+    return [];
+  };
 
-const normalizeCell = (v) => {
-  if (v == null) return null;
-  if (typeof v === 'object') return v.text ?? v.data ?? null;
-  return v;
-};
+  const normalizeCell = (v) => {
+    if (v == null) return null;
+    if (typeof v === 'object') return v.text != null ? v.text : (v.data != null ? v.data : null);
+    return v;
+  };
 
-const uniqueStrings = (arr) => {
-  const out = [];
-  const seen = new Set();
-  safeArray(arr).forEach(v => {
-    const s = String(v);
-    if (!s) return;
-    if (seen.has(s)) return;
-    seen.add(s);
-    out.push(s);
-  });
-  return out;
-};
+  const uniqueStrings = (arr) => {
+    const out = [];
+    const seen = new Set();
+    safeArray(arr).forEach(v => {
+      const s = String(v);
+      if (!s) return;
+      if (seen.has(s)) return;
+      seen.add(s);
+      out.push(s);
+    });
+    return out;
+  };
 
-// ---------- Widget ----------
-prism.registerWidget('filterBar', {
-  name: 'filterBar',
-  family: 'table',
-  title: 'Filter Bar',
-  iconSmall: '/plugins/filterBar/widget-24.png',
-  styleEditorTemplate: '/plugins/filterBar/style-panel-template.html',
+  prism.registerWidget('filterBar', {
+    name: 'filterBar',
+    family: 'table',
+    title: 'Filter Bar',
+    iconSmall: '/plugins/filterBar/widget-24.png',
+    styleEditorTemplate: '/plugins/filterBar/style-panel-template.html',
 
-  sizing: { minHeight: 80, maxHeight: 360, minWidth: 300, maxWidth: 3000 },
+    sizing: { minHeight: 80, maxHeight: 360, minWidth: 300, maxWidth: 3000 },
 
-  style: {
-    widgetMode: 'single',
-    selectionMode: 'single',
+    style: {
+      widgetMode: 'single',
+      selectionMode: 'single',
 
-    numericMode: 'auto',
-    dateMode: 'auto',
-    dateLevel: 'days',
+      numericMode: 'auto',
+      dateMode: 'auto',
+      dateLevel: 'days',
 
-    enableTypeahead: true,
-    serverTypeaheadMode: 'auto',
-    textMatchMode: 'auto',        // auto|startsWith|contains
-    autoLargeWhenTruncated: true,
-    minChars: 2,
-    maxResults: 200,
+      enableTypeahead: true,
+      serverTypeaheadMode: 'auto',
+      textMatchMode: 'auto',
+      autoLargeWhenTruncated: true,
+      minChars: 2,
+      maxResults: 200,
 
-    queryAllFieldsInMultiMode: false,
+      queryAllFieldsInMultiMode: false,
 
-    saveToServer: false,
-    applyBehavior: 'auto'
-  },
+      saveToServer: false,
+      applyBehavior: 'auto'
+    },
 
-  data: {
-    panels: [
-      { name: 'Filter Fields', type: 'visible', metadata: { types: ['dimensions'], maxitems: -1 } },
-      { name: 'filters', type: 'filters', metadata: { types: ['dimensions'], maxitems: -1 } }
-    ],
+    data: {
+      panels: [
+        { name: 'Filter Fields', type: 'visible', metadata: { types: ['dimensions'], maxitems: -1 } },
+        { name: 'filters', type: 'filters', metadata: { types: ['dimensions'], maxitems: -1 } }
+      ],
 
-    buildQuery: (widget, query) => {
-      query = query || {};
-      query.metadata = safeArray(query.metadata);
+      buildQuery: (widget, query) => {
+        query = query || {};
+        query.metadata = safeArray(query.metadata);
+
+        const items = getPanelItems(widget, 'Filter Fields');
+        const widgetMode = widget && widget.style && widget.style.widgetMode ? widget.style.widgetMode : 'single';
+        const fields = (widgetMode === 'single') ? items.slice(0, 1) : items;
+        if (!fields.length) return query;
+
+        const queryAll = (widgetMode === 'multi') && !!(widget && widget.style && widget.style.queryAllFieldsInMultiMode);
+        const toQuery = queryAll ? fields : fields.slice(0, 1);
+
+        const dateMode = widget && widget.style && widget.style.dateMode ? widget.style.dateMode : 'auto';
+        const dateLevel = widget && widget.style ? widget.style.dateLevel : null;
+
+        toQuery.forEach((f) => {
+          if (!f) return;
+          const clone = $$.object.clone(f, true);
+          if ((dateMode === 'list' || dateMode === 'auto') && dateLevel && clone.jaql && clone.jaql.datatype === 'datetime') {
+            clone.jaql.level = dateLevel;
+          }
+          query.metadata.push(clone);
+        });
+
+        getPanelItems(widget, 'filters').forEach((item) => {
+          if (!item) return;
+          const c = $$.object.clone(item, true);
+          c.panel = 'scope';
+          query.metadata.push(c);
+        });
+
+        const maxResults = Number(widget && widget.style ? widget.style.maxResults : 200);
+        query.count = isFinite(maxResults) ? maxResults : 200;
+
+        return query;
+      }
+    },
+
+    render: (widget, args) => {
+      const el = $(args.element)[0];
+      el.innerHTML = '';
 
       const items = getPanelItems(widget, 'Filter Fields');
-      const widgetMode = widget?.style?.widgetMode || 'single';
+      const widgetMode = widget && widget.style && widget.style.widgetMode ? widget.style.widgetMode : 'single';
       const fields = (widgetMode === 'single') ? items.slice(0, 1) : items;
-      if (!fields.length) return query;
 
-      const queryAll = (widgetMode === 'multi') && !!widget?.style?.queryAllFieldsInMultiMode;
-      const toQuery = queryAll ? fields : fields.slice(0, 1);
-
-      const dateMode = widget?.style?.dateMode || 'auto';
-      const dateLevel = widget?.style?.dateLevel;
-
-      toQuery.forEach((f) => {
-        if (!f) return;
-        const clone = $$.object.clone(f, true);
-        if ((dateMode === 'list' || dateMode === 'auto') && dateLevel && clone.jaql?.datatype === 'datetime') {
-          clone.jaql.level = dateLevel;
-        }
-        query.metadata.push(clone);
-      });
-
-      getPanelItems(widget, 'filters').forEach((item) => {
-        if (!item) return;
-        const c = $$.object.clone(item, true);
-        c.panel = 'scope';
-        query.metadata.push(c);
-      });
-
-      const maxResults = Number(widget?.style?.maxResults ?? 200);
-      query.count = isFinite(maxResults) ? maxResults : 200;
-
-      return query;
-    }
-  },
-
-  render: (widget, args) => {
-    const el = $(args.element)[0];
-    el.innerHTML = '';
-
-    const items = getPanelItems(widget, 'Filter Fields');
-    const widgetMode = widget?.style?.widgetMode || 'single';
-    const fields = (widgetMode === 'single') ? items.slice(0, 1) : items;
-
-    if (!fields.length) {
-      el.innerHTML = `<div class="fb-empty">Add field(s) to <b>Filter Fields</b> to configure this widget.</div>`;
-      return;
-    }
-
-    if (!Array.isArray(widget.queryResult)) {
-      el.innerHTML = `<div class="fb-empty">Waiting for results... (If this persists, check Console for buildQuery errors.)</div>`;
-      return;
-    }
-
-    const root = document.createElement('div');
-    root.className = 'fb-root';
-
-    const controlsByKey = new Map();
-
-    const saveToServer = !!widget.style.saveToServer;
-    const applyBehavior = widget.style.applyBehavior || 'auto';
-    const isListMulti = (widget.style.selectionMode === 'multi');
-
-    const keyFor = (dim, level) => `${dim}::${level || ''}`;
-
-    const getExistingFilter = (dim, level) => {
-      try { return level ? widget.dashboard.filters.item(dim, level) : widget.dashboard.filters.item(dim); }
-      catch (e) { return null; }
-    };
-
-    const removeFilter = (dim, level) => {
-      try { level ? widget.dashboard.filters.remove(dim, level) : widget.dashboard.filters.remove(dim); }
-      catch (e) {}
-      widget.dashboard.refresh();
-    };
-
-    const updateFilter = (jaql) => {
-      widget.dashboard.filters.update({ jaql }, { refresh: true, save: saveToServer });
-    };
-
-    const debounce = (fn, ms) => {
-      let t;
-      return (...a) => { clearTimeout(t); t = setTimeout(() => fn(...a), ms); };
-    };
-
-    const datasourceTitle = widget.dashboard?.datasource?.title || widget.dashboard?.datasource || null;
-
-    const parseJaqlResponseToValues = (json) => {
-      if (!json) return [];
-      if (Array.isArray(json.values)) return json.values;
-      if (Array.isArray(json.data)) return json.data;
-      if (json.result && Array.isArray(json.result.values)) return json.result.values;
-      return [];
-    };
-
-    // Initial domain from queryResult
-    const maxResults = Number(widget.style.maxResults || 200);
-    const initialDomain = uniqueStrings(
-      safeArray(widget.queryResult)
-        .map(r => Array.isArray(r) ? normalizeCell(r[0]) : normalizeCell(r))
-        .filter(v => v != null)
-        .map(v => String(v))
-    );
-
-    const isPossiblyTruncated = !!widget.style.autoLargeWhenTruncated && (initialDomain.length >= maxResults);
-
-    const resolveServerTypeahead = () => {
-      const mode = widget.style.serverTypeaheadMode || 'auto';
-      if (mode === 'on') return true;
-      if (mode === 'off') return false;
-      return isPossiblyTruncated;
-    };
-
-    const resolveTextFilterOp = () => {
-      const m = widget.style.textMatchMode || 'auto';
-      if (m === 'startsWith') return 'startsWith';
-      if (m === 'contains') return 'contains';
-      return isPossiblyTruncated ? 'startsWith' : 'contains';
-    };
-
-    const serverSearchMembers = async ({ dim, datatype, level, term, limit }) => {
-      if (!datasourceTitle) return [];
-
-      let filter;
-      if (datatype === 'text') {
-        const op = resolveTextFilterOp();
-        // HOTFIX: avoid computed object property syntax
-        if (op === 'startsWith') filter = { startsWith: term };
-        else filter = { contains: term };
-      } else if (datatype === 'number') {
-        const n = Number(term);
-        filter = isNaN(n) ? { equals: null } : { equals: n };
-      } else {
-        filter = { contains: term };
-      }
-
-      const payload = {
-        datasource: datasourceTitle,
-        metadata: [ { jaql: { dim, datatype, ...(level ? { level } : {}), filter } } ],
-        count: limit
-      };
-
-      const res = await fetch(`/api/datasources/${encodeURIComponent(datasourceTitle)}/jaql`, {
-        method: 'POST',
-        credentials: 'include',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(payload)
-      });
-
-      if (!res.ok) return [];
-      const json = await res.json();
-      const values = parseJaqlResponseToValues(json);
-
-      const out = [];
-      safeArray(values).forEach(r => {
-        if (Array.isArray(r)) {
-          const c = normalizeCell(r[0]);
-          if (c != null) out.push(String(c));
-        } else {
-          const c = normalizeCell(r);
-          if (c != null) out.push(String(c));
-        }
-      });
-      return uniqueStrings(out).slice(0, limit);
-    };
-
-    const renderListControl = ({ label, dim, datatype, level }) => {
-      const row = document.createElement('div');
-      row.className = 'fb-row';
-
-      const labelEl = document.createElement('div');
-      labelEl.className = 'fb-label';
-      labelEl.textContent = label;
-
-      const search = document.createElement('input');
-      search.className = 'fb-input';
-      search.placeholder = 'Type to search...';
-
-      const select = document.createElement('select');
-      select.className = 'fb-select';
-      if (isListMulti) select.multiple = true;
-
-      const addOptions = (values) => {
-        select.innerHTML = '';
-        if (!isListMulti) {
-          const optAll = document.createElement('option');
-          optAll.value = '__ALL__';
-          optAll.textContent = 'All';
-          select.appendChild(optAll);
-        }
-        values.forEach(v => {
-          const opt = document.createElement('option');
-          opt.value = v;
-          opt.textContent = v;
-          select.appendChild(opt);
-        });
-      };
-
-      const doApply = () => {
-        const selected = Array.from(select.selectedOptions).map(o => o.value);
-        if (!isListMulti && selected[0] === '__ALL__') return removeFilter(dim, level);
-        if (isListMulti && selected.length === 0) return removeFilter(dim, level);
-
-        updateFilter({
-          dim,
-          datatype,
-          ...(level ? { level } : {}),
-          filter: { explicit: true, multiSelection: isListMulti, members: isListMulti ? selected : [selected[0]] }
-        });
-      };
-
-      if (applyBehavior === 'auto') select.addEventListener('change', doApply);
-
-      const wantsTypeahead = !!widget.style.enableTypeahead;
-      const useServer = (datatype === 'text') ? resolveServerTypeahead() : (widget.style.serverTypeaheadMode === 'on');
-
-      if (!useServer && initialDomain.length) {
-        addOptions(initialDomain.slice(0, maxResults));
-        search.style.display = wantsTypeahead ? 'inline-block' : 'none';
-      } else {
-        addOptions([]);
-        search.style.display = wantsTypeahead ? 'inline-block' : 'none';
-      }
-
-      const doSearch = debounce(async () => {
-        const term = search.value.trim();
-        const minChars = Number(widget.style.minChars || 2);
-        if (term.length < minChars) return;
-
-        if (wantsTypeahead && useServer) {
-          const values = await serverSearchMembers({ dim, datatype, level, term, limit: maxResults });
-          addOptions(values);
-        } else {
-          const filtered = initialDomain.filter(v => v.toLowerCase().includes(term.toLowerCase()));
-          addOptions(filtered.slice(0, maxResults));
-        }
-      }, 250);
-
-      if (wantsTypeahead) search.addEventListener('input', doSearch);
-
-      const syncFn = () => {
-        const f = getExistingFilter(dim, level);
-        const members = safeArray(f?.jaql?.filter?.members).map(String);
-        const all = f?.jaql?.filter?.all;
-
-        Array.from(select.options).forEach(o => (o.selected = false));
-
-        if (!isListMulti) {
-          select.value = (all || members.length === 0) ? '__ALL__' : String(members[0]);
-        } else {
-          const set = new Set(members);
-          Array.from(select.options).forEach(o => { if (set.has(o.value)) o.selected = true; });
-        }
-      };
-
-      row.appendChild(labelEl);
-      row.appendChild(search);
-      row.appendChild(select);
-      root.appendChild(row);
-
-      controlsByKey.set(keyFor(dim, level), { syncFn, applyFn: doApply });
-      syncFn();
-    };
-
-    const renderNumericRange = ({ label, dim }) => {
-      const row = document.createElement('div');
-      row.className = 'fb-row';
-
-      const labelEl = document.createElement('div');
-      labelEl.className = 'fb-label';
-      labelEl.textContent = label;
-
-      const minInput = document.createElement('input');
-      minInput.type = 'number';
-      minInput.className = 'fb-input';
-      minInput.placeholder = 'Min';
-
-      const maxInput = document.createElement('input');
-      maxInput.type = 'number';
-      maxInput.className = 'fb-input';
-      maxInput.placeholder = 'Max';
-
-      const apply = () => {
-        const min = minInput.value !== '' ? Number(minInput.value) : null;
-        const max = maxInput.value !== '' ? Number(maxInput.value) : null;
-        if (min === null && max === null) return removeFilter(dim);
-
-        const filter = {};
-        if (min !== null) filter.from = min;
-        if (max !== null) filter.to = max;
-
-        updateFilter({ dim, datatype: 'number', filter });
-      };
-
-      if (applyBehavior === 'auto') {
-        minInput.addEventListener('change', apply);
-        maxInput.addEventListener('change', apply);
-      }
-
-      const syncFn = () => {
-        const f = getExistingFilter(dim);
-        const jf = f?.jaql?.filter || {};
-        minInput.value = (jf.from != null) ? jf.from : '';
-        maxInput.value = (jf.to != null) ? jf.to : '';
-      };
-
-      row.appendChild(labelEl);
-      row.appendChild(minInput);
-      row.appendChild(maxInput);
-      root.appendChild(row);
-
-      controlsByKey.set(keyFor(dim, null), { syncFn, applyFn: apply });
-      syncFn();
-    };
-
-    const renderDateRange = ({ label, dim }) => {
-      const row = document.createElement('div');
-      row.className = 'fb-row';
-
-      const labelEl = document.createElement('div');
-      labelEl.className = 'fb-label';
-      labelEl.textContent = label;
-
-      const fromInput = document.createElement('input');
-      fromInput.type = 'date';
-      fromInput.className = 'fb-input';
-
-      const toInput = document.createElement('input');
-      toInput.type = 'date';
-      toInput.className = 'fb-input';
-
-      const apply = () => {
-        const from = fromInput.value ? new Date(fromInput.value).toISOString() : null;
-        const to = toInput.value ? new Date(toInput.value).toISOString() : null;
-        if (!from && !to) return removeFilter(dim);
-
-        const filter = {};
-        if (from) filter.from = from;
-        if (to) filter.to = to;
-
-        updateFilter({ dim, datatype: 'datetime', filter });
-      };
-
-      if (applyBehavior === 'auto') {
-        fromInput.addEventListener('change', apply);
-        toInput.addEventListener('change', apply);
-      }
-
-      const syncFn = () => {
-        const f = getExistingFilter(dim);
-        const jf = f?.jaql?.filter || {};
-        fromInput.value = jf.from ? String(jf.from).slice(0, 10) : '';
-        toInput.value = jf.to ? String(jf.to).slice(0, 10) : '';
-      };
-
-      row.appendChild(labelEl);
-      row.appendChild(fromInput);
-      row.appendChild(toInput);
-      root.appendChild(row);
-
-      controlsByKey.set(keyFor(dim, null), { syncFn, applyFn: apply });
-      syncFn();
-    };
-
-    // Render controls
-    fields.forEach((item) => {
-      const dim = item?.jaql?.dim;
-      if (!dim) return;
-
-      const label = item.jaql.title || dim;
-      const datatype = item.jaql.datatype || 'text';
-      const dateLevel = (datatype === 'datetime' && widget.style.dateLevel) ? widget.style.dateLevel : null;
-
-      if (datatype === 'number') {
-        const nm = widget.style.numericMode || 'auto';
-        if (nm === 'range' || nm === 'auto') renderNumericRange({ label, dim });
-        else renderListControl({ label, dim, datatype: 'number', level: null });
+      if (!fields.length) {
+        el.innerHTML = `<div class="fb-empty">Add field(s) to <b>Filter Fields</b> to configure this widget.</div>`;
         return;
       }
 
-      if (datatype === 'datetime') {
-        const dm = widget.style.dateMode || 'auto';
-        if (dm === 'range' || dm === 'auto') renderDateRange({ label, dim });
-        else renderListControl({ label, dim, datatype: 'datetime', level: dateLevel });
+      if (!Array.isArray(widget.queryResult)) {
+        el.innerHTML = `<div class="fb-empty">Waiting for results...</div>`;
         return;
       }
 
-      renderListControl({ label, dim, datatype: 'text', level: null });
-    });
+      const root = document.createElement('div');
+      root.className = 'fb-root';
 
-    const actions = document.createElement('div');
-    actions.className = 'fb-actions';
+      const controlsByKey = new Map();
 
-    const btnApply = document.createElement('button');
-    btnApply.className = 'fb-btn primary';
-    btnApply.textContent = 'Apply';
-    btnApply.style.display = (applyBehavior === 'button') ? 'inline-block' : 'none';
-    btnApply.addEventListener('click', () => controlsByKey.forEach(({ applyFn }) => applyFn && applyFn()));
+      const saveToServer = !!(widget.style && widget.style.saveToServer);
+      const applyBehavior = widget.style && widget.style.applyBehavior ? widget.style.applyBehavior : 'auto';
+      const isListMulti = (widget.style && widget.style.selectionMode === 'multi');
 
-    const btnClearAll = document.createElement('button');
-    btnClearAll.className = 'fb-btn';
-    btnClearAll.textContent = 'Clear All';
-    btnClearAll.addEventListener('click', () => {
-      widget.dashboard.filters.clear();
-      widget.dashboard.refresh();
-      controlsByKey.forEach(({ syncFn }) => syncFn && syncFn());
-    });
+      const keyFor = (dim, level) => `${dim}::${level || ''}`;
 
-    actions.appendChild(btnApply);
-    actions.appendChild(btnClearAll);
-    root.appendChild(actions);
+      const getExistingFilter = (dim, level) => {
+        try { return level ? widget.dashboard.filters.item(dim, level) : widget.dashboard.filters.item(dim); }
+        catch (e) { return null; }
+      };
 
-    el.appendChild(root);
+      const removeFilter = (dim, level) => {
+        try { level ? widget.dashboard.filters.remove(dim, level) : widget.dashboard.filters.remove(dim); }
+        catch (e) {}
+        widget.dashboard.refresh();
+      };
 
-    const syncAll = () => controlsByKey.forEach(({ syncFn }) => syncFn && syncFn());
-    try { widget.dashboard.on('filterschanged', syncAll); } catch (e) {}
-    try { widget.dashboard.on('filterschanged', syncAll); } catch (e) {}
+      const updateFilter = (jaql) => {
+        widget.dashboard.filters.update({ jaql }, { refresh: true, save: saveToServer });
+      };
+
+      const debounce = (fn, ms) => {
+        let t;
+        return (...a) => { clearTimeout(t); t = setTimeout(() => fn(...a), ms); };
+      };
+
+      const datasourceTitle = widget.dashboard && widget.dashboard.datasource ? (widget.dashboard.datasource.title || widget.dashboard.datasource) : null;
+
+      const parseJaqlResponseToValues = (json) => {
+        if (!json) return [];
+        if (Array.isArray(json.values)) return json.values;
+        if (Array.isArray(json.data)) return json.data;
+        if (json.result && Array.isArray(json.result.values)) return json.result.values;
+        return [];
+      };
+
+      const maxResults = Number(widget.style && widget.style.maxResults ? widget.style.maxResults : 200);
+      const initialDomain = uniqueStrings(
+        safeArray(widget.queryResult)
+          .map(r => Array.isArray(r) ? normalizeCell(r[0]) : normalizeCell(r))
+          .filter(v => v != null)
+          .map(v => String(v))
+      );
+
+      const isPossiblyTruncated = !!(widget.style && widget.style.autoLargeWhenTruncated) && (initialDomain.length >= maxResults);
+
+      const resolveServerTypeahead = () => {
+        const mode = widget.style && widget.style.serverTypeaheadMode ? widget.style.serverTypeaheadMode : 'auto';
+        if (mode === 'on') return true;
+        if (mode === 'off') return false;
+        return isPossiblyTruncated;
+      };
+
+      const resolveTextFilterOp = () => {
+        const m = widget.style && widget.style.textMatchMode ? widget.style.textMatchMode : 'auto';
+        if (m === 'startsWith') return 'startsWith';
+        if (m === 'contains') return 'contains';
+        return isPossiblyTruncated ? 'startsWith' : 'contains';
+      };
+
+      const serverSearchMembers = async ({ dim, datatype, level, term, limit }) => {
+        if (!datasourceTitle) return [];
+
+        let filter;
+        if (datatype === 'text') {
+          const op = resolveTextFilterOp();
+          if (op === 'startsWith') filter = { startsWith: term };
+          else filter = { contains: term };
+        } else if (datatype === 'number') {
+          const n = Number(term);
+          filter = isNaN(n) ? { equals: null } : { equals: n };
+        } else {
+          filter = { contains: term };
+        }
+
+        const payload = {
+          datasource: datasourceTitle,
+          metadata: [ { jaql: { dim, datatype, ...(level ? { level } : {}), filter } } ],
+          count: limit
+        };
+
+        const res = await fetch(`/api/datasources/${encodeURIComponent(datasourceTitle)}/jaql`, {
+          method: 'POST',
+          credentials: 'include',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload)
+        });
+
+        if (!res.ok) return [];
+        const json = await res.json();
+        const values = parseJaqlResponseToValues(json);
+
+        const out = [];
+        safeArray(values).forEach(r => {
+          if (Array.isArray(r)) {
+            const c = normalizeCell(r[0]);
+            if (c != null) out.push(String(c));
+          } else {
+            const c = normalizeCell(r);
+            if (c != null) out.push(String(c));
+          }
+        });
+        return uniqueStrings(out).slice(0, limit);
+      };
+
+      const renderListControl = ({ label, dim, datatype, level }) => {
+        const row = document.createElement('div');
+        row.className = 'fb-row';
+
+        const labelEl = document.createElement('div');
+        labelEl.className = 'fb-label';
+        labelEl.textContent = label;
+
+        const search = document.createElement('input');
+        search.className = 'fb-input';
+        search.placeholder = 'Type to search...';
+
+        const select = document.createElement('select');
+        select.className = 'fb-select';
+        if (isListMulti) select.multiple = true;
+
+        const addOptions = (values) => {
+          select.innerHTML = '';
+          if (!isListMulti) {
+            const optAll = document.createElement('option');
+            optAll.value = '__ALL__';
+            optAll.textContent = 'All';
+            select.appendChild(optAll);
+          }
+          values.forEach(v => {
+            const opt = document.createElement('option');
+            opt.value = v;
+            opt.textContent = v;
+            select.appendChild(opt);
+          });
+        };
+
+        const doApply = () => {
+          const selected = Array.from(select.selectedOptions).map(o => o.value);
+          if (!isListMulti && selected[0] === '__ALL__') return removeFilter(dim, level);
+          if (isListMulti && selected.length === 0) return removeFilter(dim, level);
+
+          updateFilter({
+            dim,
+            datatype,
+            ...(level ? { level } : {}),
+            filter: { explicit: true, multiSelection: isListMulti, members: isListMulti ? selected : [selected[0]] }
+          });
+        };
+
+        if (applyBehavior === 'auto') select.addEventListener('change', doApply);
+
+        const wantsTypeahead = !!(widget.style && widget.style.enableTypeahead);
+        const useServer = (datatype === 'text') ? resolveServerTypeahead() : (widget.style && widget.style.serverTypeaheadMode === 'on');
+
+        if (!useServer && initialDomain.length) {
+          addOptions(initialDomain.slice(0, maxResults));
+          search.style.display = wantsTypeahead ? 'inline-block' : 'none';
+        } else {
+          addOptions([]);
+          search.style.display = wantsTypeahead ? 'inline-block' : 'none';
+        }
+
+        const doSearch = debounce(async () => {
+          const term = search.value.trim();
+          const minChars = Number(widget.style && widget.style.minChars ? widget.style.minChars : 2);
+          if (term.length < minChars) return;
+
+          if (wantsTypeahead && useServer) {
+            const values = await serverSearchMembers({ dim, datatype, level, term, limit: maxResults });
+            addOptions(values);
+          } else {
+            const filtered = initialDomain.filter(v => v.toLowerCase().includes(term.toLowerCase()));
+            addOptions(filtered.slice(0, maxResults));
+          }
+        }, 250);
+
+        if (wantsTypeahead) search.addEventListener('input', doSearch);
+
+        const syncFn = () => {
+          const f = getExistingFilter(dim, level);
+          const members = safeArray(f && f.jaql && f.jaql.filter ? f.jaql.filter.members : []).map(String);
+          const all = f && f.jaql && f.jaql.filter ? f.jaql.filter.all : false;
+
+          Array.from(select.options).forEach(o => (o.selected = false));
+
+          if (!isListMulti) {
+            select.value = (all || members.length === 0) ? '__ALL__' : String(members[0]);
+          } else {
+            const set = new Set(members);
+            Array.from(select.options).forEach(o => { if (set.has(o.value)) o.selected = true; });
+          }
+        };
+
+        row.appendChild(labelEl);
+        row.appendChild(search);
+        row.appendChild(select);
+        root.appendChild(row);
+
+        controlsByKey.set(keyFor(dim, level), { syncFn, applyFn: doApply });
+        syncFn();
+      };
+
+      const renderNumericRange = ({ label, dim }) => {
+        const row = document.createElement('div');
+        row.className = 'fb-row';
+
+        const labelEl = document.createElement('div');
+        labelEl.className = 'fb-label';
+        labelEl.textContent = label;
+
+        const minInput = document.createElement('input');
+        minInput.type = 'number';
+        minInput.className = 'fb-input';
+        minInput.placeholder = 'Min';
+
+        const maxInput = document.createElement('input');
+        maxInput.type = 'number';
+        maxInput.className = 'fb-input';
+        maxInput.placeholder = 'Max';
+
+        const apply = () => {
+          const min = minInput.value !== '' ? Number(minInput.value) : null;
+          const max = maxInput.value !== '' ? Number(maxInput.value) : null;
+          if (min === null && max === null) return removeFilter(dim);
+
+          const filter = {};
+          if (min !== null) filter.from = min;
+          if (max !== null) filter.to = max;
+
+          updateFilter({ dim, datatype: 'number', filter });
+        };
+
+        if (applyBehavior === 'auto') {
+          minInput.addEventListener('change', apply);
+          maxInput.addEventListener('change', apply);
+        }
+
+        const syncFn = () => {
+          const f = getExistingFilter(dim);
+          const jf = f && f.jaql ? f.jaql.filter || {} : {};
+          minInput.value = (jf.from != null) ? jf.from : '';
+          maxInput.value = (jf.to != null) ? jf.to : '';
+        };
+
+        row.appendChild(labelEl);
+        row.appendChild(minInput);
+        row.appendChild(maxInput);
+        root.appendChild(row);
+
+        controlsByKey.set(keyFor(dim, null), { syncFn, applyFn: apply });
+        syncFn();
+      };
+
+      const renderDateRange = ({ label, dim }) => {
+        const row = document.createElement('div');
+        row.className = 'fb-row';
+
+        const labelEl = document.createElement('div');
+        labelEl.className = 'fb-label';
+        labelEl.textContent = label;
+
+        const fromInput = document.createElement('input');
+        fromInput.type = 'date';
+        fromInput.className = 'fb-input';
+
+        const toInput = document.createElement('input');
+        toInput.type = 'date';
+        toInput.className = 'fb-input';
+
+        const apply = () => {
+          const from = fromInput.value ? new Date(fromInput.value).toISOString() : null;
+          const to = toInput.value ? new Date(toInput.value).toISOString() : null;
+          if (!from && !to) return removeFilter(dim);
+
+          const filter = {};
+          if (from) filter.from = from;
+          if (to) filter.to = to;
+
+          updateFilter({ dim, datatype: 'datetime', filter });
+        };
+
+        if (applyBehavior === 'auto') {
+          fromInput.addEventListener('change', apply);
+          toInput.addEventListener('change', apply);
+        }
+
+        const syncFn = () => {
+          const f = getExistingFilter(dim);
+          const jf = f && f.jaql ? f.jaql.filter || {} : {};
+          fromInput.value = jf.from ? String(jf.from).slice(0, 10) : '';
+          toInput.value = jf.to ? String(jf.to).slice(0, 10) : '';
+        };
+
+        row.appendChild(labelEl);
+        row.appendChild(fromInput);
+        row.appendChild(toInput);
+        root.appendChild(row);
+
+        controlsByKey.set(keyFor(dim, null), { syncFn, applyFn: apply });
+        syncFn();
+      };
+
+      fields.forEach((item) => {
+        const dim = item && item.jaql ? item.jaql.dim : null;
+        if (!dim) return;
+
+        const label = item.jaql.title || dim;
+        const datatype = item.jaql.datatype || 'text';
+        const dateLevel = (datatype === 'datetime' && widget.style && widget.style.dateLevel) ? widget.style.dateLevel : null;
+
+        if (datatype === 'number') {
+          const nm = widget.style && widget.style.numericMode ? widget.style.numericMode : 'auto';
+          if (nm === 'range' || nm === 'auto') renderNumericRange({ label, dim });
+          else renderListControl({ label, dim, datatype: 'number', level: null });
+          return;
+        }
+
+        if (datatype === 'datetime') {
+          const dm = widget.style && widget.style.dateMode ? widget.style.dateMode : 'auto';
+          if (dm === 'range' || dm === 'auto') renderDateRange({ label, dim });
+          else renderListControl({ label, dim, datatype: 'datetime', level: dateLevel });
+          return;
+        }
+
+        renderListControl({ label, dim, datatype: 'text', level: null });
+      });
+
+      const actions = document.createElement('div');
+      actions.className = 'fb-actions';
+
+      const btnApply = document.createElement('button');
+      btnApply.className = 'fb-btn primary';
+      btnApply.textContent = 'Apply';
+      btnApply.style.display = (applyBehavior === 'button') ? 'inline-block' : 'none';
+      btnApply.addEventListener('click', () => controlsByKey.forEach(({ applyFn }) => applyFn && applyFn()));
+
+      const btnClearAll = document.createElement('button');
+      btnClearAll.className = 'fb-btn';
+      btnClearAll.textContent = 'Clear All';
+      btnClearAll.addEventListener('click', () => {
+        widget.dashboard.filters.clear();
+        widget.dashboard.refresh();
+        controlsByKey.forEach(({ syncFn }) => syncFn && syncFn());
+      });
+
+      actions.appendChild(btnApply);
+      actions.appendChild(btnClearAll);
+      root.appendChild(actions);
+
+      el.appendChild(root);
+
+      const syncAll = () => controlsByKey.forEach(({ syncFn }) => syncFn && syncFn());
+      try { widget.dashboard.on('filterschanged', syncAll); } catch (e) {}
+      try { widget.dashboard.on('filterschanged', syncAll); } catch (e) {}
+    }
+  });
+}
+
+(function waitForPrism(){
+  // If prism is already available, register immediately.
+  if (typeof window !== 'undefined' && window.prism && typeof window.prism.registerWidget === 'function') {
+    try { registerFilterBar(); } catch (e) { console.error('[filterBar] failed to register', e); }
+    return;
   }
-});
+  setTimeout(waitForPrism, 50);
+})();
