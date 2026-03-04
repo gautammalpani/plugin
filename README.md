@@ -1,29 +1,49 @@
-# Sisense Filter Bar (Custom Widget) — Linux L2025.4
+# Sisense Filter Bar — v1.0.3-hotfix (Linux L2025.4)
 
-## What’s New (v1.0.3)
-- **Starts-with is now the default** match behavior for **large text domains** when using **server-side typeahead (Auto)**.
-- Still configurable per widget via **Text match mode (server typeahead)**.
+This hotfix restores plugin-loader compatibility while keeping the **v1.0.3 behavior**:
 
-## Large-domain behavior (100k+ members)
-- Large domains require typing (min chars) and use server-side typeahead.
-- In Auto mode, the widget uses **startsWith** for large domains (faster and more "typeahead"-like).
+- **Large text domains** (e.g., 100k+ values) use **server-side typeahead** in Auto mode
+- For large domains, the server-side query uses **startsWith** by default (configurable)
+
+## What was fixed
+The original v1.0.3 used **computed object property** syntax for the JAQL filter:
+
+```js
+filter = { [op]: term };
+```
+
+In some Sisense environments, the plugin loader/transpiler can fail to parse/evaluate this syntax, which can prevent **all custom widgets** from registering.
+
+This hotfix replaces it with explicit filter objects:
+
+```js
+if (op === 'startsWith') filter = { startsWith: term };
+else filter = { contains: term };
+```
 
 ## Install
-Copy the entire `filterBar/` folder into:
+1. Unzip this package.
+2. Copy the entire `filterBar/` folder to:
 
 `/opt/sisense/storage/plugins/filterBar/`
 
-Then restart Sisense web app (recommended) or hard refresh.
+3. Restart the Sisense web app (recommended) and hard refresh browser cache.
 
-## Configuration (Style panel)
-- Server-side Typeahead: Auto / On / Off
-- Text match mode: Auto (Starts-with for large) / Starts With / Contains
-- Auto: treat list as large when it hits max results
-- Min chars, Max results
+## Configuration
+In the widget Style panel:
+- **Server-side Typeahead**: Auto / On / Off
+- **Text match mode**: Auto (startsWith for large) / Starts With / Contains
+- **Min chars** and **Max results**
 
-## Notes
-If your `/api/datasources/{datasource}/jaql` endpoint expects a different datasource identifier than the dashboard datasource title, update:
+## Note about datasource identifier
+Server typeahead uses:
+
+`POST /api/datasources/{datasource}/jaql`
+
+The plugin uses the dashboard datasource title by default:
 
 ```js
 const datasourceTitle = widget.dashboard?.datasource?.title || widget.dashboard?.datasource || null;
 ```
+
+If your environment needs a different datasource identifier (e.g., fullname), update that line in `main.6.js`.

@@ -1,6 +1,7 @@
 // Filter Bar custom widget for Sisense Fusion (Linux) - L2025.4+
 // Top-of-dashboard filter controls as a reusable widget.
-// v1.0.3: Server typeahead uses Starts-with by default for large text domains (configurable).
+// v1.0.3-hotfix: avoids computed object properties to prevent plugin-loader parse failures.
+// Behavior: for large text domains, server typeahead uses startsWith by default (configurable).
 
 import controllerDefinition from './style-panel-controller.6';
 
@@ -226,7 +227,6 @@ prism.registerWidget('filterBar', {
       const m = widget.style.textMatchMode || 'auto';
       if (m === 'startsWith') return 'startsWith';
       if (m === 'contains') return 'contains';
-      // auto: startsWith for large domains, contains for small domains
       return isPossiblyTruncated ? 'startsWith' : 'contains';
     };
 
@@ -236,7 +236,9 @@ prism.registerWidget('filterBar', {
       let filter;
       if (datatype === 'text') {
         const op = resolveTextFilterOp();
-        filter = { [op]: term };
+        // HOTFIX: avoid computed object property syntax
+        if (op === 'startsWith') filter = { startsWith: term };
+        else filter = { contains: term };
       } else if (datatype === 'number') {
         const n = Number(term);
         filter = isNaN(n) ? { equals: null } : { equals: n };
@@ -324,7 +326,6 @@ prism.registerWidget('filterBar', {
       const wantsTypeahead = !!widget.style.enableTypeahead;
       const useServer = (datatype === 'text') ? resolveServerTypeahead() : (widget.style.serverTypeaheadMode === 'on');
 
-      // Small domain: show immediately. Large domain: require typing.
       if (!useServer && initialDomain.length) {
         addOptions(initialDomain.slice(0, maxResults));
         search.style.display = wantsTypeahead ? 'inline-block' : 'none';
