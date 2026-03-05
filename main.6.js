@@ -1,19 +1,8 @@
 // Filter Bar custom widget for Sisense Fusion (Linux) - L2025.4+
-// Full version with editor-safe guards (fixes errors during widget-type switching).
-// Behavior:
-//  - Small text domains: show list immediately.
-//  - Large domains: require typing; server-side typeahead; startsWith is default in Auto mode.
-
-import controllerDefinition from './style-panel-controller.6';
+// Full version with editor-safe guards and NO custom Angular controller for the style panel.
+// Fixes Angular error: controller 'plugin-filterBar.controllers.stylerController' not registered.
 
 function registerFilterBar() {
-  // Style panel controller (Angular)
-  let mod;
-  try { mod = angular.module('plugin-filterBar'); }
-  catch (e) { mod = angular.module('plugin-filterBar', []); }
-  mod.controller('plugin-filterBar.controllers.stylerController', controllerDefinition);
-
-  // ---------- Helpers ----------
   const safeArray = (v) => Array.isArray(v) ? v : [];
 
   const getPanel = (widget, panelName) => {
@@ -29,10 +18,7 @@ function registerFilterBar() {
 
     if (typeof md.panel === 'function') {
       for (let i = 0; i < tryNames.length; i++) {
-        try {
-          const p = md.panel(tryNames[i]);
-          if (p) return p;
-        } catch (e) {}
+        try { const p = md.panel(tryNames[i]); if (p) return p; } catch (e) {}
       }
     }
 
@@ -117,7 +103,6 @@ function registerFilterBar() {
       ],
 
       buildQuery: (widget, query) => {
-        // GUARDS: during widget-type switching, Sisense may call buildQuery before widget/panels exist
         query = query || {};
         query.metadata = safeArray(query.metadata);
         if (!widget) return query;
@@ -157,7 +142,6 @@ function registerFilterBar() {
     },
 
     render: (widget, args) => {
-      // GUARDS: during widget-type switching, Sisense may call render with missing args/element
       if (!args || !args.element) return;
       const el = $(args.element)[0];
       if (!el) return;
@@ -213,7 +197,6 @@ function registerFilterBar() {
         const m = widget.style && widget.style.textMatchMode ? widget.style.textMatchMode : 'auto';
         if (m === 'startsWith') return 'startsWith';
         if (m === 'contains') return 'contains';
-        // Auto: startsWith for large domains, contains for small domains
         return isPossiblyTruncated ? 'startsWith' : 'contains';
       };
 
@@ -338,11 +321,11 @@ function registerFilterBar() {
 
         if (!useServer && initialDomain.length) {
           addOptions(initialDomain.slice(0, maxResults));
-          search.style.display = wantsTypeahead ? 'inline-block' : 'none';
         } else {
           addOptions([]);
-          search.style.display = wantsTypeahead ? 'inline-block' : 'none';
         }
+
+        search.style.display = wantsTypeahead ? 'inline-block' : 'none';
 
         const doSearch = debounce(async () => {
           const term = search.value.trim();
@@ -532,7 +515,6 @@ function registerFilterBar() {
       actions.appendChild(btnClearAll);
       root.appendChild(actions);
 
-      // Sync when dashboard filters change
       const syncAll = () => controlsByKey.forEach(({ syncFn }) => syncFn && syncFn());
       try { widget.dashboard.on('filterschanged', syncAll); } catch (e) {}
       try { widget.dashboard.on('filterschanged', syncAll); } catch (e) {}

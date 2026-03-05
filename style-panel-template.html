@@ -1,8 +1,8 @@
-<div data-ng-controller="plugin-filterBar.controllers.stylerController">
+<div class="ws-style-panel">
 
   <div class="style-control">
     <label>Widget Mode</label>
-    <select data-ng-model="widget.style.widgetMode">
+    <select data-ng-model="widget.style.widgetMode" data-ng-change="$root.widget.redraw()">
       <option value="single">Single Filter (1 field)</option>
       <option value="multi">Multi Filter Bar (multiple fields)</option>
     </select>
@@ -10,7 +10,7 @@
 
   <div class="style-control">
     <label>Selection Mode (list mode)</label>
-    <select data-ng-model="widget.style.selectionMode">
+    <select data-ng-model="widget.style.selectionMode" data-ng-change="$root.widget.redraw()">
       <option value="single">Single-select</option>
       <option value="multi">Multi-select</option>
     </select>
@@ -18,7 +18,7 @@
 
   <div class="style-control">
     <label>Numeric Mode</label>
-    <select data-ng-model="widget.style.numericMode">
+    <select data-ng-model="widget.style.numericMode" data-ng-change="$root.widget.redraw()">
       <option value="auto">Auto</option>
       <option value="list">List</option>
       <option value="range">Range (min/max)</option>
@@ -28,7 +28,7 @@
 
   <div class="style-control">
     <label>Date Mode</label>
-    <select data-ng-model="widget.style.dateMode">
+    <select data-ng-model="widget.style.dateMode" data-ng-change="$root.widget.redraw()">
       <option value="auto">Auto</option>
       <option value="list">List (by level)</option>
       <option value="range">Date Range (From/To)</option>
@@ -38,7 +38,7 @@
 
   <div class="style-control">
     <label>Date Level (when Date Mode = List)</label>
-    <select data-ng-model="widget.style.dateLevel">
+    <select data-ng-model="widget.style.dateLevel" data-ng-change="$root.widget.redraw()">
       <option value="days">Days</option>
       <option value="weeks">Weeks</option>
       <option value="months">Months</option>
@@ -51,12 +51,12 @@
 
   <div class="style-control">
     <label>Enable Search / Typeahead</label>
-    <input type="checkbox" data-ng-model="widget.style.enableTypeahead"/>
+    <input type="checkbox" data-ng-model="widget.style.enableTypeahead" data-ng-change="$root.widget.redraw()"/>
   </div>
 
   <div class="style-control">
     <label>Server-side Typeahead</label>
-    <select data-ng-model="widget.style.serverTypeaheadMode">
+    <select data-ng-model="widget.style.serverTypeaheadMode" data-ng-change="$root.widget.redraw()">
       <option value="auto">Auto (recommended)</option>
       <option value="on">On</option>
       <option value="off">Off</option>
@@ -65,7 +65,7 @@
 
   <div class="style-control">
     <label>Text match mode (server typeahead)</label>
-    <select data-ng-model="widget.style.textMatchMode">
+    <select data-ng-model="widget.style.textMatchMode" data-ng-change="$root.widget.redraw()">
       <option value="auto">Auto (Starts-with for large domains)</option>
       <option value="startsWith">Starts With</option>
       <option value="contains">Contains</option>
@@ -74,34 +74,34 @@
 
   <div class="style-control">
     <label>Auto: treat list as large when it hits max results</label>
-    <input type="checkbox" data-ng-model="widget.style.autoLargeWhenTruncated"/>
+    <input type="checkbox" data-ng-model="widget.style.autoLargeWhenTruncated" data-ng-change="$root.widget.redraw()"/>
   </div>
 
   <div class="style-control">
     <label>Min chars to trigger typeahead</label>
-    <input type="number" min="1" max="10" data-ng-model="widget.style.minChars"/>
+    <input type="number" min="1" max="10" data-ng-model="widget.style.minChars" data-ng-change="$root.widget.redraw()"/>
   </div>
 
   <div class="style-control">
     <label>Max results</label>
-    <input type="number" min="10" max="5000" data-ng-model="widget.style.maxResults"/>
+    <input type="number" min="10" max="5000" data-ng-model="widget.style.maxResults" data-ng-change="$root.widget.redraw()"/>
   </div>
 
   <div class="style-control">
     <label>Multi mode: Query all fields for initial values</label>
-    <input type="checkbox" data-ng-model="widget.style.queryAllFieldsInMultiMode"/>
+    <input type="checkbox" data-ng-model="widget.style.queryAllFieldsInMultiMode" data-ng-change="$root.widget.redraw()"/>
   </div>
 
   <hr/>
 
   <div class="style-control">
     <label>Persist Filter (save to server)</label>
-    <input type="checkbox" data-ng-model="widget.style.saveToServer"/>
+    <input type="checkbox" data-ng-model="widget.style.saveToServer" data-ng-change="$root.widget.redraw()"/>
   </div>
 
   <div class="style-control">
     <label>Apply Behavior</label>
-    <select data-ng-model="widget.style.applyBehavior">
+    <select data-ng-model="widget.style.applyBehavior" data-ng-change="$root.widget.redraw()">
       <option value="auto">Auto-apply</option>
       <option value="button">Apply button</option>
     </select>

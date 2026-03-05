@@ -1,25 +1,25 @@
-# Sisense Filter Bar — Full Guarded Version (v1.0.3-full)
+# Sisense Filter Bar — Full Guarded (No Angular Controller)
 
-This package is the **full Filter Bar widget** (UI + server typeahead + numeric/date range) with the **editor-safe guards** that prevent errors when switching an existing widget to the Filter Bar type.
+## Why this version
+You encountered the error:
 
-## Install (Sisense Linux)
+`[$controller:ctrlreg] The controller with the name 'plugin-filterBar.controllers.stylerController' is not registered.`
+
+That means the style panel template referenced a controller that Sisense's Angular context did not have registered.
+
+This package removes the need for a custom controller by:
+- removing `data-ng-controller` from the style panel template
+- using `ng-change="$root.widget.redraw()"` to trigger redraws
+
+## Install
 1. Unzip.
-2. Copy the entire `filterBar/` folder into:
+2. Copy the `filterBar/` folder to:
 
-   `/opt/sisense/storage/plugins/filterBar/`
+`/opt/sisense/storage/plugins/filterBar/`
 
-3. Restart the Sisense web application, then hard refresh browser cache.
+3. Restart Sisense web application and hard refresh browser cache.
 
-## Verify
-- In the widget type picker, **Filter Bar** appears.
-- Switching a widget's type to **Filter Bar** does not produce console errors.
-
-## Large domains
-- For large text domains, server-side typeahead uses **startsWith** by default (Auto mode).
-- Users must type at least `minChars` characters.
-
-## Notes
-- The plugin is enabled via `isEnabled: true` in plugin.json.
-- Registration waits until `window.prism.registerWidget` is available.
-
-If server-side typeahead returns no results, you may need to adjust the datasource identifier in `main.6.js` (`datasourceTitle`).
+## Features
+- Full Filter Bar UI (text list + numeric/date ranges)
+- Large text domains: server typeahead with **startsWith** default in Auto mode
+- Editor-safe guards to prevent buildQuery/render errors during widget-type switching
