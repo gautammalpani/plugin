@@ -35,7 +35,9 @@
       <option value="years">Years</option>
     </select>
   </div>
+
   <hr/>
+
   <div class="style-control"><label>Enable Search / Typeahead</label>
     <input type="checkbox" data-ng-model="widget.style.enableTypeahead" data-ng-change="$root.widget.redraw()"/>
   </div>
@@ -53,22 +55,29 @@
       <option value="contains">Contains</option>
     </select>
   </div>
+
   <div class="style-control"><label>Auto: treat list as large when it hits max results</label>
     <input type="checkbox" data-ng-model="widget.style.autoLargeWhenTruncated" data-ng-change="$root.widget.redraw()"/>
   </div>
+
   <div class="style-control"><label>Min chars to trigger typeahead</label>
     <input type="number" min="1" max="10" data-ng-model="widget.style.minChars" data-ng-change="$root.widget.redraw()"/>
   </div>
+
   <div class="style-control"><label>Max results</label>
     <input type="number" min="10" max="5000" data-ng-model="widget.style.maxResults" data-ng-change="$root.widget.redraw()"/>
   </div>
+
   <div class="style-control"><label>Multi mode: Query all fields for initial values</label>
     <input type="checkbox" data-ng-model="widget.style.queryAllFieldsInMultiMode" data-ng-change="$root.widget.redraw()"/>
   </div>
+
   <hr/>
+
   <div class="style-control"><label>Persist Filter (save to server)</label>
     <input type="checkbox" data-ng-model="widget.style.saveToServer" data-ng-change="$root.widget.redraw()"/>
   </div>
+
   <div class="style-control"><label>Apply Behavior</label>
     <select data-ng-model="widget.style.applyBehavior" data-ng-change="$root.widget.redraw()">
       <option value="auto">Auto-apply</option>

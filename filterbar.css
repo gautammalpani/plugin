@@ -8,6 +8,7 @@
 .fb-btn{padding:6px 10px;border-radius:6px;border:1px solid rgba(0,0,0,.18);background:#fff;cursor:pointer;}
 .fb-btn.primary{background:#2b78d4;color:#fff;border-color:#2b78d4;}
 .fb-empty{padding:10px 12px;opacity:.7;}
+.fb-banner{font-size:12px;opacity:.55;}
 .style-control{margin:10px 0;}
 .style-control label{display:block;font-weight:600;margin-bottom:6px;}
 .style-hint{opacity:.7;margin-top:6px;font-size:12px;}
