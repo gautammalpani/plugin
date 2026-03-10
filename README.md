@@ -1,23 +1,25 @@
-# QuickTextDropdownFilter (v1)
+# Sisense Filter Bar (Widget)
 
-## What it does
-- Adds a custom Sisense widget: **Quick Text Dropdown Filter**.
-- Widget queries distinct members of a selected dimension from the Elasticube.
-- Renders a dropdown (single-select) or multi-select dropdown (native HTML multiple).
-- Selecting values updates the **dashboard filter** and refreshes immediately.
-- Clearing selection clears the constraint (sets filter to `all:true`) without removing the filter.
+Target: **Sisense Fusion Linux L2025.4**.
 
-## Install (Sisense Linux)
-1. Copy folder `QuickTextDropdownFilter` to: `/opt/sisense/storage/plugins/QuickTextDropdownFilter/`
-2. Hard refresh the browser (Ctrl+Shift+R). If not loaded, restart Sisense web.
+## Purpose
+Place a filter control **directly on the dashboard canvas** so key filters are obvious to users.
 
-## Configure in dashboard
-1. Add widget: **Quick Text Dropdown Filter**
-2. In widget editor: drag a *dimension* into the **Field** panel.
-3. In style panel:
-   - Select Single vs Multi
-   - Optional: Persist selection
-   - Optional: Enable debug logging
+## Behavior
+- Updates **dashboard-level filters** (same as the right-hand filter panel).
+- Default **Clear** behavior: **Clear this widget only**.
 
-## Debug logging
-Enable **Enable console debug logging** in the widget style panel and open DevTools console.
+## Icons
+This build provides:
+- `widget-24.png`
+- `widget-48.png`
+- `widget.svg`
+
+Widget registration sets: `icon`, `iconSmall`, `iconLarge`, and `iconSvg`.
+
+## Install (Linux)
+1. Copy folder to `/opt/sisense/storage/plugins/filterBar/`
+2. Restart Sisense web/services and hard refresh browser.
+
+## Build
+- 2026-03-06 (iconSvg)

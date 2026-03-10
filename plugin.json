@@ -1,11 +1,11 @@
 {
-  "name": "QuickTextDropdownFilter",
+  "name": "filterBar",
   "pluginInfraVersion": 2,
   "isEnabled": true,
   "source": [
     "main.6.js"
   ],
   "style": [
-    "style.css"
+    "filterbar.css"
   ]
 }
