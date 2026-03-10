@@ -1,0 +1,23 @@
+<div data-ng-controller="plugin-QuickTextDropdownFilter.controllers.stylerController">
+  <div class="style-control">
+    <label>Selection mode:</label>
+    <select ng-model="widget.style.qtdf_multi">
+      <option value="false">Single-select</option>
+      <option value="true">Multi-select</option>
+    </select>
+  </div>
+
+  <div class="style-control">
+    <label>
+      <input type="checkbox" ng-model="widget.style.qtdf_persist" />
+      Persist selection (save)
+    </label>
+  </div>
+
+  <div class="style-control">
+    <label>
+      <input type="checkbox" ng-model="widget.style.qtdf_debug" />
+      Enable console debug logging
+    </label>
+  </div>
+</div>

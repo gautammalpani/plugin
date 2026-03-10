@@ -1,17 +1,23 @@
-# Sisense Filter Bar — Full Unique Build (2026-03-05)
+# QuickTextDropdownFilter (v1)
 
-This is the **full functional** Filter Bar plugin with:
-- No Angular style controller (prevents ctrlreg)
-- Editor-safe guards (prevents buildQuery/render errors)
-- Large domains: server typeahead, startsWith default in Auto mode
+## What it does
+- Adds a custom Sisense widget: **Quick Text Dropdown Filter**.
+- Widget queries distinct members of a selected dimension from the Elasticube.
+- Renders a dropdown (single-select) or multi-select dropdown (native HTML multiple).
+- Selecting values updates the **dashboard filter** and refreshes immediately.
+- Clearing selection clears the constraint (sets filter to `all:true`) without removing the filter.
 
 ## Install (Sisense Linux)
-1. Unzip.
-2. Copy folder to: `/opt/sisense/storage/plugins/filterBar/`
-3. Restart Sisense web app and hard refresh browser.
+1. Copy folder `QuickTextDropdownFilter` to: `/opt/sisense/storage/plugins/QuickTextDropdownFilter/`
+2. Hard refresh the browser (Ctrl+Shift+R). If not loaded, restart Sisense web.
 
-## Verify
-- Console shows: `[filterBar] registering full-unique-20260305`
-- Widget always shows a small banner: `Filter Bar (full-unique-20260305)`
+## Configure in dashboard
+1. Add widget: **Quick Text Dropdown Filter**
+2. In widget editor: drag a *dimension* into the **Field** panel.
+3. In style panel:
+   - Select Single vs Multi
+   - Optional: Persist selection
+   - Optional: Enable debug logging
 
-If you do not see the banner, the widget render function is not being called (typically due to editor transition). Try leaving widget editor and viewing on the dashboard, or forcing a refresh.
+## Debug logging
+Enable **Enable console debug logging** in the widget style panel and open DevTools console.
